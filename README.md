@@ -43,7 +43,7 @@ I started by reading in all the `vehicle` and `non-vehicle` images.  Here is an 
 
 I then explored different color spaces and different `skimage.hog()` parameters (`orientations`, `pixels_per_cell`, and `cells_per_block`).  
 
-Here is an example using the `LUV` color space and HOG parameters of `orientations=8`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)` based on sample image shown above. The `get_hog_features` function handles this:
+Here is an example using the `HLS` color space and HOG parameters of `orientations=8`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)` based on sample image shown above. The `get_hog_features` function handles this:
 
 
 ![alt text][image2]
@@ -57,7 +57,7 @@ Here is the visualization of the color historam for the 3 channels (using 32 bin
 
 I tried various combinations of parameters so as the get the best accuracy on the test set. My final parameter set was:
 
-`color_space` = 'LUV' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
+`color_space` = 'HLS' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
 
 `orient` = 8  # HOG orientations
 
@@ -80,7 +80,7 @@ I tried various combinations of parameters so as the get the best accuracy on th
 
 #### 3. Training the classifier
 
-I trained a linear SVM using scikits `linerSVC`. I split up the dataset and used 20% as test dataset and remaining for training. My classifier achived an accuracy of `~0.9794`
+I trained a linear SVM using scikits `linerSVC`. I split up the dataset and used 20% as test dataset and remaining for training. My classifier achived an accuracy of `~0.9625`
 
 ### Sliding Window Search
 
@@ -112,7 +112,7 @@ From detections I created a heatmap and then thresholded that map to identify ve
 
 In order to reduce the "jumpiness" of the boxes, I maintained a history of previous heatmaps. While processing every frame, I summed the history and then took a weighted average of the current heatmap and the history
 
-
+I also added a sanity check to use bounding boxes from previous frame if there are no bounding boxes found in the current frame
 ---
 
 ### Discussion
@@ -121,5 +121,8 @@ In order to reduce the "jumpiness" of the boxes, I maintained a history of previ
 
 The largest amount of time spent was on tuning the heatmap thresholds and incorporating historic frame information into current frame calculations (with appropriate weights) in order to make the bounding boxes smoother. 
 
-My classifer seems to work better on the darker car. This results in some sections of the video not detecting the white car. Part of the problem could be that udacity dataset may have less number of images for white cars. Although my classifier has accuracy of 0.979 , in some sampe images, number of `detections` for white car were less compared to the other car.
+When using YUV color space, My classifer seems to work better on the darker car. This results in some sections of the video not detecting the white car. Part of the problem could be that udacity dataset may have less number of images for white cars. Although my classifier has accuracy of 0.979 , in some sample images, number of `detections` for white car were less compared to the other car.
 
+After changing to `HLS` color space, the white car does register higher number of `detections`. But with `HLS` color space, the classifier also has quite a lot of false positive detections. These were mainly removed by higher level of heatmap thresholding
+
+I also added a sanity step in the pipeline to use bounding boxes found in previous frame if the current frame does not give any detections resulting in bounding boxes.
